@@ -1,0 +1,5 @@
+name = Subtheme color
+description = Create custom subtheme with different colors
+core = 7.x
+version = 0.1
+dependencies[] = color
