@@ -9,12 +9,13 @@ function subtheme_color_drush_command() {
         'description' => 'Subtheme color',
         'aliases' => array('stc'),
         'arguments' => array(
+            'theme' => 'Theme machine name',
             'palette' => 'Color palette in json format',
         ),
         'options' => array(
         ),
         'examples' => array(
-            'drush stc \'{"top": "#4a4a4a"}\'' => 'Set the "top" color',
+            'drush stc bartik \'{"top": "#4a4a4a"}\'' => 'Set the "top" color for "bartik" theme',
         ),
     );
 
@@ -25,9 +26,13 @@ function subtheme_color_drush_command() {
  * Drush command logic.
  * drush_[COMMAND_NAME]().
  */
-function drush_subtheme_color($jsonPalette = '') {
+function drush_subtheme_color($themeMachineName = '', $jsonPalette = '') {
+    if (!$themeMachineName) {
+        drush_print('error: theme machine name is required');
+        return;
+    }
     if (!$jsonPalette) {
-        drush_print('error: there is no colors');
+        drush_print('error: there is no palette colors to set');
         return;
     }
     $newPalette = json_decode($jsonPalette, true);
@@ -35,12 +40,16 @@ function drush_subtheme_color($jsonPalette = '') {
         drush_print('error: error decoding json');
         return;
     }
-    $theme_bartik_settings = variable_get('theme_bartik_settings');
-    $oldPalette = $theme_bartik_settings['palette'];
+    $theme_settings = variable_get('theme_' . $themeMachineName . '_settings');
+    if (!$theme_settings || !is_array($theme_settings['palette'])) {
+        drush_print('error: error reading existing theme palette');
+        return;
+    }
+    $oldPalette = $theme_settings['palette'];
     $form_state = array(
         'values' => array(
-            'info' => $theme_bartik_settings['info'],
-            'theme' => 'bartik',
+            'info' => $theme_settings['info'],
+            'theme' => $themeMachineName,
             'palette' => array_merge($oldPalette, $newPalette)
         )
     );
